@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict
 from utils.logger import get_logger
 from utils.redis_client import get_redis
 
@@ -29,7 +29,7 @@ def get_cart(platform: str, user_id: int) -> Dict[str, int]:
     for product_id_bytes, quantity_bytes in raw_data.items():
         product_id = product_id_bytes.decode("utf-8")
         try:
-            quantity = int(quantity_bytes.decode("utf-8"))
+            quantity = float(quantity_bytes.decode("utf-8"))
             if quantity > 0:
                 cart[product_id] = quantity
         except (ValueError, TypeError):
@@ -39,7 +39,7 @@ def get_cart(platform: str, user_id: int) -> Dict[str, int]:
     return cart
 
 
-def save_cart(platform: str, user_id: int, cart: Dict[str, int]):
+def save_cart(platform: str, user_id: int, cart: Dict[str, float]):
     """
     Сохраняет корзину пользователя в Redis
     Устанавливает срок хранения корзины (TTL), если корзина не пустая
@@ -55,16 +55,14 @@ def save_cart(platform: str, user_id: int, cart: Dict[str, int]):
     if mapping:
         redis_db.hset(key, mapping=mapping)
         redis_db.expire(key, CART_TTL_SECONDS)
-        logger.debug(
-            f"Сохранена корзина для {platform}/{user_id}: {len(mapping)} позиций"
-        )
+        logger.debug(f"Сохранена корзина для {platform}/{user_id}: {len(mapping)} позиций")
     else:
         redis_db.delete(key)
 
 
 def add_to_cart(
-    platform: str, user_id: int, product_id: str, quantity: int = 1
-) -> Dict[str, int]:
+    platform: str, user_id: int, product_id: str, quantity: float = 1.0
+) -> Dict[str, float]:
     """
     Добавляет товар в корзину (или увеличивает его количество)
     Возвращает актуальное состояние корзины
@@ -73,7 +71,7 @@ def add_to_cart(
         return get_cart(platform, user_id)
 
     cart = get_cart(platform, user_id)
-    cur_quantity = cart.get(product_id, 0)
+    cur_quantity = cart.get(product_id, 0.0)
     new_quantity = cur_quantity + quantity
 
     if new_quantity > 0:
@@ -86,14 +84,14 @@ def add_to_cart(
 
 
 def remove_from_cart(
-    platform: str, user_id: int, product_id: str, quantity: int = 1
-) -> Dict[str, int]:
+    platform: str, user_id: int, product_id: str, quantity: float = 1.0
+) -> Dict[str, float]:
     """
     Уменьшает количество товара в корзине (вплоть до нуля)
     Возвращает актуальное состояние корзины
     """
     cart = get_cart(platform, user_id)
-    cur_quantity = cart.get(product_id, 0)
+    cur_quantity = cart.get(product_id, 0.0)
 
     if cur_quantity == 0:
         return cart
@@ -120,35 +118,3 @@ def clear_cart(platform: str, user_id: int) -> bool:
     if existed:
         logger.info(f"Корзина очищена для {platform}/{user_id}")
     return bool(existed)
-
-
-def calculate_cart_total(platform: str, user_id: int) -> Tuple[float, int]:
-    """
-    Возвращает (общая_стоимость, общее_количество_штук)
-    """
-    cart = get_cart(platform, user_id)
-    if not cart:
-        return 0.0, 0
-    
-    total_cost = 0.0
-    total_qty = 0
-    
-    for item in cart.values():
-        total_cost += item["quantity"] * item["price"]
-        total_qty += item["quantity"]
-        
-    return round(total_cost, 2), total_qty
-
-
-def get_cart_summary(platform: str, user_id: int) -> Dict:
-    """Готовый словарь для отображения корзины"""
-    cart = get_cart(platform, user_id)
-    total_cost, total_qty = calculate_cart_total(platform, user_id)
-    
-    return {
-        "items": cart,
-        "total_cost": total_cost,
-        "total_quantity": total_qty,
-        "item_count": len(cart), 
-        "is_empty": not cart
-    }
