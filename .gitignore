@@ -1,4 +1,6 @@
 media/
+utils/api_test.py
+response.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

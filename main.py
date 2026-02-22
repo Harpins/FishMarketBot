@@ -16,14 +16,14 @@ async def main():
     
     dp.include_routers(cart_router, catalog_router, start_router)
 
-    logger.critical("Tg-бот запущен")
+    logger.critical("(магазин рыбы) Tg-бот запущен")
     try:
         await dp.start_polling(bot)
     except Exception as e:
-        logger.critical("Критическая ошибка при tg-polling:", exc_info=True)
+        logger.critical("(магазин рыбы) Критическая ошибка при tg-polling:", exc_info=True)
     finally:
         await bot.session.close()
-        logger.critical("tg-бот остановлен")
+        logger.critical("(магазин рыбы) tg-бот остановлен")
 
 
 if __name__ == "__main__":
