@@ -21,7 +21,9 @@ async def get_products(page: int = 1, page_size: int = 10):
         ) as response:
             if response.status == 200:
                 data = await response.json()
+                logger.info(f"Найдено {len(data["data"])} продуктов")
                 return data["data"], data["meta"]["pagination"]
+                
             return [], {}
 
 
