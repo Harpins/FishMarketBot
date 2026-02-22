@@ -23,7 +23,7 @@ async def main():
         logger.critical("(магазин рыбы) Критическая ошибка при tg-polling:", exc_info=True)
     finally:
         await bot.session.close()
-        logger.critical("(магазин рыбы) tg-бот остановлен")
+        logger.critical("(магазин рыбы) Tg-бот остановлен")
 
 
 if __name__ == "__main__":
