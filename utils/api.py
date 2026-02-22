@@ -169,3 +169,55 @@ async def _replace_cart_products(
                 success = False
 
     return success
+
+
+async def get_customer_cart_status(tg_id: int):
+    """
+    Проверяет наличие активной корзины у пользователя по tg_id.
+    Возвращает (есть_ли_непустая_корзина, информация_о_корзине)
+    """
+    headers = {
+        "Authorization": f"Bearer {STRAPITOKEN}",
+        "Accept": "application/json"
+    }
+
+    customer_url = f"{STRAPIURL}/customers"
+    customer_params = {
+        "filters[tg_id][$eq]": str(tg_id),
+        "populate": "cart.cartproducts",
+        "pagination[limit]": 1
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(customer_url, headers=headers, params=customer_params) as response:
+            if response.status != 200:
+                logger.warning(f"Ошибка при поиске customer: {response.status}")
+                return False, {"error": f"HTTP {response.status}"}
+
+            data = await response.json()
+            customers = data.get("data", [])
+
+            if not customers:
+                logger.info(f"Customer с tg_id={tg_id} не найден")
+                return False, {"status": "no_customer"}
+
+            customer = customers[0]
+            cart = customer.get("cart")
+
+            if not cart:
+                logger.info(f"У customer {tg_id} нет связанной корзины")
+                return False, {"status": "no_cart"}
+
+            cartproducts = cart.get("cartproducts", [])
+            positions_count = len(cartproducts) if isinstance(cartproducts, list) else 0
+
+            if positions_count == 0:
+                logger.info(f"Корзина customer {tg_id} пуста")
+                return False, {"status": "empty_cart"}
+
+            return True, {
+                "customer_documentId": customer["documentId"],
+                "cart_documentId": cart["documentId"],
+                "positions": positions_count,
+                "total_quantity": sum(item.get("quantity", 0) for item in cartproducts)
+            }

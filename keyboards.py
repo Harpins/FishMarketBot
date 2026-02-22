@@ -1,50 +1,34 @@
-from aiogram.types import (
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-    InlineKeyboardMarkup
-)
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 
-def get_main_menu() -> ReplyKeyboardMarkup:
+def get_main_menu_keyboard(has_cart: bool = False) -> ReplyKeyboardMarkup:
+    """
+    Основное меню в зависимости от того, есть ли корзина у пользователя
+    """
     kb = [
-        [KeyboardButton(text="🛒 Каталог рыбы")],
-        [KeyboardButton(text="🛍 Корзина")],
+        [KeyboardButton(text="🛒 Каталог")],
     ]
+
+    if has_cart:
+        kb.append([KeyboardButton(text="🛍 Корзина")])
+        kb.append([KeyboardButton(text="Продолжить покупки")])
+    else:
+        kb.append([KeyboardButton(text="Начать покупки")])
+
     return ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
-        input_field_placeholder="Выберите действие...",
+        input_field_placeholder="Выберите действие..."
     )
 
 
-def product_card(product_id: int, in_cart: bool = False) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(text="➕ В корзину", callback_data=f"add_to_cart:{product_id}")
-    if in_cart:
-        builder.button(
-            text="🗑 Убрать из корзины", callback_data=f"remove_from_cart:{product_id}"
-        )
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def cart_actions(cart_items_count: int) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    if cart_items_count > 0:
-        builder.button(text="Очистить корзину", callback_data="clear_cart")
-        builder.button(text="Оформить заказ", callback_data="checkout")
-    builder.button(text="← Назад в каталог", callback_data="back_to_catalog")
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def product_pagination(page: int, total_pages: int) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    if page > 0:
-        builder.button(text="⬅ Предыдущая", callback_data=f"catalog_page:{page-1}")
-    if page < total_pages - 1:
-        builder.button(text="Следующая ➡", callback_data=f"catalog_page:{page+1}")
-    builder.button(text="← В меню", callback_data="back_to_menu")
-    builder.adjust(2)
-    return builder.as_markup()
+def get_cart_inline_keyboard() -> InlineKeyboardMarkup:
+    """Inline-кнопки внутри корзины (пример)"""
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Очистить корзину", callback_data="cart_clear"),
+            InlineKeyboardButton(text="Оформить заказ", callback_data="cart_checkout")
+        ],
+        [InlineKeyboardButton(text="Продолжить покупки", callback_data="back_to_catalog")]
+    ])
+    return kb
