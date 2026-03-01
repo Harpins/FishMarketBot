@@ -1,16 +1,14 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-def get_main_menu_keyboard(has_cart: bool = False) -> ReplyKeyboardMarkup:
+def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     """
-    Основное меню в зависимости от того, есть ли корзина у пользователя
+    Основное меню
     """
     kb = [
         [KeyboardButton(text="🛒 Каталог")],
+        [KeyboardButton(text="🛍 Корзина")]
     ]
 
-    if has_cart:
-        kb.append([KeyboardButton(text="🛍 Корзина")])
-        
     return ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
