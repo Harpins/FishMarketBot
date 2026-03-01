@@ -5,4 +5,4 @@ class ShopStates(StatesGroup):
     viewing_catalog = State()
     viewing_product = State()      
     in_cart = State()               
-    checkout = State()              
+    checkout = State()          

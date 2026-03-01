@@ -1,17 +1,27 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, BufferedInputFile
+from aiogram.types import (
+    Message,
+    CallbackQuery,
+    BufferedInputFile,
+    InputMediaPhoto,
+    ReplyKeyboardRemove,
+)
 from aiogram.fsm.context import FSMContext
 import aiohttp
-from utils.api import get_products, get_product
-from keyboards import get_catalog_inline_keyboard, get_product_detail_keyboard
-from states import ShopStates
 from handlers.start import cmd_start
+from utils.api import get_products, get_product
+from keyboards import (
+    get_catalog_inline_keyboard,
+    get_product_detail_keyboard,
+)
+from states import ShopStates
 
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 router = Router(name="catalog")
+
 
 @router.message(F.text.lower().contains("каталог"))
 async def show_catalog(message: Message, state: FSMContext):
@@ -23,10 +33,9 @@ async def show_catalog(message: Message, state: FSMContext):
         return
 
     text = "Выберите товар из каталога:\n"
-    await message.answer(
-        text,
-        reply_markup=get_catalog_inline_keyboard(products)
-    )
+
+    await message.answer(text="Готовим каталог", reply_markup=ReplyKeyboardRemove())
+    await message.answer(text, reply_markup=get_catalog_inline_keyboard(products))
 
     await state.set_state(ShopStates.viewing_catalog)
 
@@ -51,10 +60,9 @@ async def show_product_detail(callback: CallbackQuery, state: FSMContext):
 
     if image_url:
         try:
-            await callback.message.answer_photo(
-                photo=image_url,
-                caption=text,
-                reply_markup=get_product_detail_keyboard(product_id)
+            await callback.message.edit_media(
+                media=InputMediaPhoto(media=image_url, caption=text, parse_mode="HTML"),
+                reply_markup=get_product_detail_keyboard(product_id),
             )
         except Exception as e:
             logger.warning(f"Не удалось отправить картинку по URL {image_url}: {e}")
@@ -63,28 +71,29 @@ async def show_product_detail(callback: CallbackQuery, state: FSMContext):
                     async with session.get(image_url) as resp:
                         if resp.status == 200:
                             image_bytes = await resp.read()
-                            await callback.message.answer_photo(
-                                photo=BufferedInputFile(
-                                    file=image_bytes,
-                                    filename=f"product_{product_id}.jpg"
+                            await callback.message.edit_media(
+                                media=InputMediaPhoto(
+                                    media=BufferedInputFile(
+                                        file=image_bytes,
+                                        filename=f"product_{product_id}.jpg",
+                                    ),
+                                    caption=text,
+                                    parse_mode="HTML",
                                 ),
-                                caption=text + "\n(отправлено напрямую)",
-                                parse_mode="HTML",
-                                reply_markup=get_product_detail_keyboard(product_id)
+                                reply_markup=get_product_detail_keyboard(product_id),
                             )
                         else:
                             raise Exception("Не удалось скачать изображение")
             except Exception as download_error:
                 logger.error(f"Ошибка скачивания: {download_error}")
-                await callback.message.answer(
-                    text + "\n\n(фото недоступно)",
+                await callback.message.edit_text(
+                    text=text + "\n\n(фото недоступно)",
                     parse_mode="HTML",
-                    reply_markup=get_product_detail_keyboard(product_id)
+                    reply_markup=get_product_detail_keyboard(product_id),
                 )
     else:
         await callback.message.answer(
-            text,
-            reply_markup=get_product_detail_keyboard(product_id)
+            text, reply_markup=get_product_detail_keyboard(product_id)
         )
 
     await callback.answer()
@@ -94,7 +103,12 @@ async def show_product_detail(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "back_to_catalog")
 async def back_to_catalog(callback: CallbackQuery, state: FSMContext):
     """Возврат к списку товаров"""
-    await show_catalog(callback.message, state) 
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+
+    await show_catalog(callback.message, state)
     await callback.answer()
 
 
@@ -102,6 +116,11 @@ async def back_to_catalog(callback: CallbackQuery, state: FSMContext):
 async def back_to_main_menu(callback: CallbackQuery, state: FSMContext):
     """Возврат в главное меню"""
     await state.clear()
-    await cmd_start(callback.message, state) 
+
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+
+    await cmd_start(callback.message, state)
     await callback.answer()
-    
