@@ -11,6 +11,7 @@ logger = get_logger(__name__)
 
 router = Router(name="start")
 
+
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     text = (
@@ -18,10 +19,7 @@ async def cmd_start(message: Message, state: FSMContext):
         "Свежайшая рыба, морепродукты и икра ждут вас.\n\n"
     )
 
-    await message.answer(
-        text,
-        reply_markup=get_main_menu_keyboard()
-    )
-    
+    await message.answer(text, reply_markup=get_main_menu_keyboard())
+
     await state.clear()
     await state.set_state(ShopStates.viewing_catalog)

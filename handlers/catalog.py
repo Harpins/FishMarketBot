@@ -4,7 +4,6 @@ from aiogram.types import (
     CallbackQuery,
     BufferedInputFile,
     InputMediaPhoto,
-    ReplyKeyboardRemove,
 )
 from aiogram.fsm.context import FSMContext
 import aiohttp
@@ -34,7 +33,6 @@ async def show_catalog(message: Message, state: FSMContext):
 
     text = "Выберите товар из каталога:\n"
 
-    await message.answer(text="Готовим каталог", reply_markup=ReplyKeyboardRemove())
     await message.answer(text, reply_markup=get_catalog_inline_keyboard(products))
 
     await state.set_state(ShopStates.viewing_catalog)
