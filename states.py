@@ -4,5 +4,6 @@ class ShopStates(StatesGroup):
     main_menu = State()
     viewing_catalog = State()
     viewing_product = State()      
-    in_cart = State()               
+    in_cart = State()
+    entering_email = State()               
     checkout = State()          

@@ -96,5 +96,8 @@ def get_cart_keyboard(cart_items: list[dict]) -> InlineKeyboardMarkup:
         rows.append(
             [InlineKeyboardButton(text="← В каталог", callback_data="back_to_catalog")]
         )
+        rows.append(
+            [InlineKeyboardButton(text="Оплатить", callback_data="make_order")]
+        )
 
     return InlineKeyboardMarkup(inline_keyboard=rows)

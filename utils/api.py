@@ -251,3 +251,41 @@ async def remove_from_cart(tg_id: int, product_doc_id: str):
 
     logger.info(f"Количество товара {product_doc_id} уменьшено на 1 шт. для tg_{tg_id}")
     return True
+
+
+async def update_customer_email(tg_id: int, email: str) -> bool:
+    headers = {
+        "Authorization": f"Bearer {STRAPITOKEN}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+
+    async with aiohttp.ClientSession() as session:
+        params = {"filters[tg_id][$eq]": str(tg_id), "pagination[limit]": 1}
+        async with session.get(
+            f"{STRAPIURL}/customers", headers=headers, params=params
+        ) as resp:
+            if resp.status != 200:
+                logger.error(f"Ошибка поиска customer: {resp.status}")
+                return False
+
+            data = await resp.json()
+            if not data.get("data"):
+                logger.warning(f"Customer с tg_id {tg_id} не найден")
+                return False
+
+            customer = data["data"][0]
+            customer_id = customer["documentId"]
+
+        payload = {"data": {"email": email}}
+        update_url = f"{STRAPIURL}/customers/{customer_id}"
+
+        async with session.put(update_url, json=payload, headers=headers) as resp:
+            if resp.status in (200, 201):
+                logger.info(f"Email {email} сохранён для tg_{tg_id}")
+                return True
+            else:
+                logger.error(
+                    f"Ошибка обновления email: {resp.status} {await resp.text()}"
+                )
+                return False
