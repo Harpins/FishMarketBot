@@ -26,7 +26,7 @@ def get_logger(name: str = __name__) -> logging.Logger:
         )
         tg_handler.setFormatter(formatter) 
         logger.addHandler(tg_handler)
-    except Exception as e:
-        logger.error(f"Не удалось подключить Telegram handler: {e}")
+    except Exception:
+        logger.exception("Не удалось подключить Telegram handler")
     
     return logger

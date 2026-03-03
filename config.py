@@ -10,7 +10,7 @@ ERROR_CHAT_ID = env.int("ERROR_CHAT_ID", None)
 STRAPITOKEN = env.str("STRAPITOKEN", "")
 
 STRAPIBASE = env.str("STRAPIBASE", "http://localhost:1337")
-STRAPIURL = STRAPIBASE + "/api"
+STRAPIURL = f"{STRAPIBASE}/api"
 
 BASE_DIR = Path(__file__).parent
 LANGUAGE_CODE = "ru-RU"

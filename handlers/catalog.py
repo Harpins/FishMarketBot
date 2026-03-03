@@ -62,8 +62,8 @@ async def show_product_detail(callback: CallbackQuery, state: FSMContext):
                 media=InputMediaPhoto(media=image_url, caption=text, parse_mode="HTML"),
                 reply_markup=get_product_detail_keyboard(product_id),
             )
-        except Exception as e:
-            logger.warning(f"Не удалось отправить картинку по URL {image_url}: {e}")
+        except Exception:
+            logger.exception("Не удалось отправить картинку по URL")
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(image_url) as resp:
@@ -82,8 +82,8 @@ async def show_product_detail(callback: CallbackQuery, state: FSMContext):
                             )
                         else:
                             raise Exception("Не удалось скачать изображение")
-            except Exception as download_error:
-                logger.error(f"Ошибка скачивания: {download_error}")
+            except Exception:
+                logger.exception("Ошибка скачивания")
                 await callback.message.edit_text(
                     text=text + "\n\n(фото недоступно)",
                     parse_mode="HTML",

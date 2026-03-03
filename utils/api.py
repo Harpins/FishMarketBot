@@ -1,7 +1,6 @@
 import aiohttp
 from config import STRAPIBASE, STRAPIURL, STRAPITOKEN
 from utils.logger import get_logger
-import asyncio
 
 logger = get_logger(__name__)
 
@@ -37,8 +36,8 @@ async def get_product(product_id: str):
             f"{STRAPIURL}/products/{product_id}", headers=headers, params=params
         ) as response:
             if response.status == 200:
-                json_data = await response.json()
-                product = json_data.get("data")
+                response_data = await response.json()
+                product = response_data.get("data")
                 if not product:
                     return None
                 if product.get("image"):
@@ -66,9 +65,9 @@ async def get_or_create_customer(tg_id: int):
             f"{STRAPIURL}/customers", headers=headers, params=search_params
         ) as response:
             if response.status == 200:
-                data = await response.json()
-                if data.get("data"):
-                    return data["data"][0]
+                response_data = await response.json()
+                if response_data.get("data"):
+                    return response_data["data"][0]
 
         payload = {"data": {"tg_id": str(tg_id)}}
         async with session.post(

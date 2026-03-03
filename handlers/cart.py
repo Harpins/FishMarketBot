@@ -77,12 +77,12 @@ async def update_cart_message(message: Message, text: str, keyboard):
         try:
             await message.edit_text(text=text, reply_markup=keyboard, parse_mode="HTML")
             return True
-        except Exception as e:
-            logger.warning(f"Не удалось отредактировать сообщение корзины: {e}")
+        except Exception:
+            logger.exception("Не удалось отредактировать сообщение корзины")
     try:
         await message.delete()
-    except Exception as e:
-        logger.debug(f"Не удалось удалить старое сообщение: {e}")
+    except Exception:
+        logger.exception("Не удалось удалить старое сообщение")
 
     await message.answer(text, reply_markup=keyboard)
     return True

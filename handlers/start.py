@@ -5,9 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from keyboards import get_main_menu_keyboard
 from states import ShopStates
-from utils.logger import get_logger
 
-logger = get_logger(__name__)
 
 router = Router(name="start")
 
